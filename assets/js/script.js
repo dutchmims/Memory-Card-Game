@@ -1,63 +1,67 @@
-const cards = document.querySelectorAll('.memory-card');
+// retrieve card (cell) element
+const card = document.querySelectorAll('.cell');
 
-let hasFlippedCard = false;
-let lockBoard = false;
-let firstCard, secondCard;
+// retrieve front element
+const front = document.querySelectorAll('.front');
 
-function flipCard() {
-  if (lockBoard) return;
-  if (this === firstCard) return;
+// retrieve container element
+const container = document.querySelector('.container');
 
-  this.classList.add('flip');
+// retrieve score element
+const score = document.querySelector('.score span');
 
-  if (!hasFlippedCard) {
-    // first click
-    hasFlippedCard = true;
-    firstCard = this;
+// shuffle cards 
+suffleImage();
+clicking();
+function suffleImage() {
+  card.forEach((c) => {
+    const num = [...Array(card.length).keys()];
+    const random = Math.floor(Math.random() * card.length);
 
-    return;
-  }
-
-  // second click
-  secondCard = this;
-
-  checkForMatch();
-}
-
-function checkForMatch() {
-  let isMatch = firstCard.dataset.framework === secondCard.dataset.framework;
-
-  isMatch ? disableCards() : unflipCards();
-}
-
-function disableCards() {
-  firstCard.removeEventListener('click', flipCard);
-  secondCard.removeEventListener('click', flipCard);
-
-  resetBoard();
-}
-
-function unflipCards() {
-  lockBoard = true;
-
-  setTimeout(() => {
-    firstCard.classList.remove('flip');
-    secondCard.classList.remove('flip');
-
-    resetBoard();
-  }, 1500);
-}
-
-function resetBoard() {
-  [hasFlippedCard, lockBoard] = [false, false];
-  [firstCard, secondCard] = [null, null];
-}
-
-(function shuffle() {
-  cards.forEach(card => {
-    let randomPos = Math.floor(Math.random() * 12);
-    card.style.order = randomPos;
+    c.style.order = num[random];
   });
-})();
+}
 
-cards.forEach(card => card.addEventListener('click', flipCard));
+function clicking() {
+  for (let i = 0; i < card.length; i++) {
+    front[i].classList.add('show');
+
+    setInterval(() => {
+      front[i].classList.remove('show');
+    }, 2000);
+
+// count moves
+    card[i].addEventListener('click', () => {
+      front[i].classList.add('flip');
+      const filppedCard = document.querySelectorAll('.flip');
+
+      if (filppedCard.length == 2) {
+        container.style.pointerEvents = 'none';
+
+        setInterval(() => {
+          container.style.pointerEvents = 'all';
+        }, 1000);
+
+        match(filppedCard[0], filppedCard[1]);
+      }
+    });
+  }
+}
+
+// find matching cards
+function match(cardOne, cardTwo) {
+  if (cardOne.dataset.index == cardTwo.dataset.index) {
+    score.innerHTML = parseInt(score.innerHTML) + 1;
+
+    cardOne.classList.remove('flip');
+    cardTwo.classList.remove('flip');
+
+    cardOne.classList.add('match');
+    cardTwo.classList.add('match');
+  } else {
+    setTimeout(() => {
+      cardOne.classList.remove('flip');
+      cardTwo.classList.remove('flip');
+    }, 1000);
+  }
+}
